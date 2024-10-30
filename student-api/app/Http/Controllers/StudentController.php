@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Student; // Tambahkan baris ini
+use App\Models\Student;
+use Illuminate\Support\Facades\Validator;
 
 class StudentController extends Controller
 {
@@ -13,7 +14,7 @@ class StudentController extends Controller
     public function index()
     {
         $students = Student::all();
-        
+
         $response = [
             'message' => 'Success Showing All Students Data',
             'data' => $students
@@ -22,25 +23,30 @@ class StudentController extends Controller
         return response()->json($response, 200);
     }
 
-
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-       $input = [
-        'name' => $request->name,
-        'nim' => $request->nim,
-        'email' => $request->email,
-        'majority' => $request->majority
-       ];
+        // Validation rules
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'nim' => 'required|string|unique:students,nim',
+            'email' => 'required|email|unique:students,email',
+            'majority' => 'required|string|max:100'
+        ]);
 
-       $input = $request->only(['name', 'nim', 'email', 'majority']);
-       $student = Student::create($input);
+        // Check validation
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
 
-       return response()->json([
-        'message' => 'Successfully created new student',
-        'data' => $student
+        // Input and store data
+        $student = Student::create($request->only(['name', 'nim', 'email', 'majority']));
+
+        return response()->json([
+            'message' => 'Successfully created new student',
+            'data' => $student
         ], 201);
     }
 
@@ -52,7 +58,10 @@ class StudentController extends Controller
         $student = Student::find($id);
 
         if ($student) {
-            return response()->json($student, 200);
+            return response()->json([
+                'message' => 'Student found',
+                'data' => $student
+            ], 200);
         }
 
         return response()->json(['message' => 'Student not found'], 404);
@@ -69,13 +78,26 @@ class StudentController extends Controller
             return response()->json(['message' => 'Student not found'], 404);
         }
 
-        $student->name = $request->input('name', $student->name);
-        $student->nim = $request->input('nim', $student->nim);
-        $student->email = $request->input('email', $student->email);
-        $student->majority = $request->input('majority', $student->majority);
-        $student->save();
+        // Validation rules
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|string|max:255',
+            'nim' => 'sometimes|string|unique:students,nim,' . $id,
+            'email' => 'sometimes|email|unique:students,email,' . $id,
+            'majority' => 'sometimes|string|max:100'
+        ]);
 
-        return response()->json(['message' => 'Student updated successfully', 'data' => $student], 200);
+        // Check validation
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        // Update data
+        $student->update($request->only(['name', 'nim', 'email', 'majority']));
+
+        return response()->json([
+            'message' => 'Student updated successfully',
+            'data' => $student
+        ], 200);
     }
 
     /**
