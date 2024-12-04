@@ -1,6 +1,6 @@
 // TODO 3: Import fruits dari data/fruits.js
 // Refactor variable ke ES6 Variable
-const fruits = require("./fruits");
+const fruits = require("./data/fruits/");
 
 // TODO 4: Buat method index
 function index() {

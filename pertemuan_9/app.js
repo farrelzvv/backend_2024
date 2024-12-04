@@ -1,6 +1,6 @@
 // TODO 9: Import semua method FruitController
 // Refactor variable ke ES6 Variable
-const { index, store, update, destroy } = require("./FruitController");
+const { index, store, update, destroy } = require("./controller/FruitController");
 
 // HINT: Gunakan Destructuring Object
 
